@@ -1,3 +1,13 @@
+"""
+Scrape running shoe information
+
+This module contains code for web scrapping data about running shoes from the Brooks web page and writing the data to a csv
+
+Attributes:
+    detail_expressions (dict):
+        Contains instructions/expressions for extracting various product details
+"""
+
 import re
 import requests
 from bs4 import BeautifulSoup
