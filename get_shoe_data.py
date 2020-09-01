@@ -33,7 +33,8 @@ def get_shoe_name(shoe_page):
     """
     return shoe_page.find(re.compile('.*'), {'class': re.compile('product--meta__title.*')}).text
 
-def get_shoe_type(shoe_page)
+
+def get_shoe_type(shoe_page):
     """
     Get the type of shoe
 
@@ -44,6 +45,7 @@ def get_shoe_type(shoe_page)
         str: returns the type of shoe
     """
     return shoe_page.find(re.compile('.*'), {'class': re.compile('product--meta__sub-title.*')}).text
+
 
 def get_shoe_price(shoe_page):
     """
@@ -101,4 +103,4 @@ for product_link in product_links:
 
 
 all_shoes = pd.concat(all_shoes)
-
+all_shoes.to_csv('shoe_details.csv')
