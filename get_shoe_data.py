@@ -17,7 +17,7 @@ import pandas as pd
 detail_expressions = {
     'Name': 'product--meta__title.*',
     'Price': 'product--meta__price.*',
-    'Type':  'product--meta__sub-title.*'
+    'Type': 'product--meta__sub-title.*'
 }
 
 
@@ -61,7 +61,7 @@ def get_shoe_specs(shoe_page):
     Get the specs for a brooks shoe
 
     Args:
-        shoe_page (obj): The shoe page as parsed by get_shoe_page function
+        shoe_page (obj): The shoe page as parsed by get_page function
 
     Returns:
         dict: returns the specs of the shoe
@@ -82,36 +82,71 @@ def get_shoe_specs(shoe_page):
     return features
 
 
-# Get all shoes
-bs = get_page('https://www.brooksrunning.com/en_us/shoes/?&sz=300')
+def get_all_shoe_links(url):
+    """
+    Retrieve all the links to individual shoe detail pages from the browse products page
 
-# Get links to details for all shoes
-products = bs.find_all('div', {'class': re.compile('.*product-container.*')})
+    Args:
+        url (str): The url of the browse products page
 
-product_links = []
+    Returns:
+        list: List of links to each shoe
+    """
+    # Get all shoes
+    bs = get_page(url)
 
-for product in products:
-    product_links.append(product.find('a')['href'])
+    # Get links to details for all shoes
+    products = bs.find_all('div', {'class': re.compile('.*product-container.*')})
 
+    product_links = []
 
-# Retrieve details for each product
-all_shoes = list()
-loops = 0
-loop_max = 2
-for product_link in product_links:
-    shoe_page = get_page(product_link)
-    shoe_features = get_shoe_specs(shoe_page)
-    for detail in detail_expressions:
-        shoe_features[detail] = get_detail(shoe_page, detail_expressions[detail])
-    shoe_details = pd.DataFrame(shoe_features, index=[shoe_features['Name']])
-    all_shoes.append(shoe_details)
-    time.sleep(1)
-    loops += 1
-    if loops > loop_max:
-        break
-    print(str(loops), ' of', str(len(product_links)))
+    for product in products:
+        product_links.append(product.find('a')['href'])
+
+    return product_links
 
 
-all_shoes = pd.concat(all_shoes)
-print(all_shoes)
-# all_shoes.to_csv('shoe_details.csv')
+# 999 shoes would likely be an error, lets not put an infinite loop against their server
+def get_all_shoes(max_loops=999, output=True):
+    product_links = get_all_shoe_links('https://www.brooksrunning.com/en_us/shoes/?&sz=300')
+
+    # setup looping variables
+    all_shoes = list()
+    loops = 0
+
+    for product_link in product_links:
+        shoe_page = get_page(product_link)
+
+        # extract shoe details
+        shoe_features = get_shoe_specs(shoe_page)
+        for detail in detail_expressions:
+            shoe_features[detail] = get_detail(shoe_page, detail_expressions[detail])
+
+        # setup as DataFrame and place with rest of shoes
+        shoe_details = pd.DataFrame(shoe_features, index=[shoe_features['Name']])
+        all_shoes.append(shoe_details)
+
+        # pause in order to prevent taxing server
+        time.sleep(1)
+
+        # looping info and stops
+        loops += 1
+        if loops > max_loops:
+            break
+        print(str(loops), ' of', str(len(product_links)))
+
+    all_shoes = pd.concat(all_shoes)
+
+    # output data
+    if output:
+        all_shoes.to_csv('shoe_details.csv')
+    else:
+        print(all_shoes)
+
+
+def main(max_shoes_retrieve, output_data):
+    get_all_shoes(max_shoes_retrieve, output_data)
+
+
+if __name__ == "__main__":
+    main(int(input('Enter the number of shoes to retrieve: ')), bool(input('Do you want to output to a csv file: ')))
