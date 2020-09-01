@@ -2,6 +2,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 import time
+import pandas as pd
 
 # Get all shoes
 brooks = requests.get('https://www.brooksrunning.com/en_us/shoes/?&sz=300')
@@ -32,6 +33,17 @@ def get_shoe_name(shoe_page):
     """
     return shoe_page.find(re.compile('.*'), {'class': re.compile('product--meta__title.*')}).text
 
+def get_shoe_type(shoe_page)
+    """
+    Get the type of shoe
+
+    Args:
+        shoe_page (obj): The shoe page as parsed by get_shoe_page function
+
+    Returns:
+        str: returns the type of shoe
+    """
+    return shoe_page.find(re.compile('.*'), {'class': re.compile('product--meta__sub-title.*')}).text
 
 def get_shoe_price(shoe_page):
     """
@@ -70,10 +82,23 @@ def get_shoe_specs(shoe_page):
 
 
 # Retrieve details for each product
+all_shoes = list()
+# loops = 0
+# loop_max = 9
 for product_link in product_links:
     shoe_page = get_shoe_page(product_link)
     shoe_features = get_shoe_specs(shoe_page)
     shoe_features['name'] = get_shoe_name(shoe_page)
     shoe_features['price'] = get_shoe_price(shoe_page)
-    print(shoe_features)
+    shoe_features['type'] = get_shoe_type(shoe_page)
+    shoe_details = pd.DataFrame(shoe_features, index=[shoe_features['name']])
+    all_shoes.append(shoe_details)
     time.sleep(1)
+    # loops += 1
+    # if loops > loop_max:
+    #    break
+
+
+
+all_shoes = pd.concat(all_shoes)
+
