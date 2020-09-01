@@ -44,7 +44,10 @@ def get_shoe_type(shoe_page):
     Returns:
         str: returns the type of shoe
     """
-    return shoe_page.find(re.compile('.*'), {'class': re.compile('product--meta__sub-title.*')}).text
+    try:
+        return shoe_page.find(re.compile('.*'), {'class': re.compile('product--meta__sub-title.*')}).text
+    except AttributeError:
+        return None
 
 
 def get_shoe_price(shoe_page):
@@ -57,7 +60,12 @@ def get_shoe_price(shoe_page):
     Returns:
         str: returns the price of the shoe
     """
-    return shoe_page.find(re.compile('.*'), {'class': re.compile('product--meta__price.*')}).text
+    try:
+        price = shoe_page.find(re.compile('.*'), {'class': re.compile('product--meta__price.*')}).text
+        return price
+    except AttributeError:
+        return None
+
 
 
 def get_shoe_specs(shoe_page):
@@ -71,7 +79,10 @@ def get_shoe_specs(shoe_page):
         dict: returns the specs of the shoe
     """
     # Retrieve specs from specs table
-    shoe_spec_rows = shoe_page.find_all('tr', {'class': 'specs__row'})
+    try:
+        shoe_spec_rows = shoe_page.find_all('tr', {'class': 'specs__row'})
+    except AttributeError:
+        return {'sepcs': 'no specs'}
 
     # Loop through each spec
     features = {}
@@ -85,7 +96,7 @@ def get_shoe_specs(shoe_page):
 
 # Retrieve details for each product
 all_shoes = list()
-# loops = 0
+loops = 0
 # loop_max = 9
 for product_link in product_links:
     shoe_page = get_shoe_page(product_link)
@@ -96,10 +107,10 @@ for product_link in product_links:
     shoe_details = pd.DataFrame(shoe_features, index=[shoe_features['name']])
     all_shoes.append(shoe_details)
     time.sleep(1)
-    # loops += 1
+    loops += 1
     # if loops > loop_max:
     #    break
-
+    print(str(loops), ' of', str(len(product_links)))
 
 
 all_shoes = pd.concat(all_shoes)
