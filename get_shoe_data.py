@@ -17,7 +17,7 @@ for product in products:
 
 # Retrieve details for each product
 for product_link in product_links:
-    product_page = requests.get(dproduct_link)
+    product_page = requests.get(product_link)
     bs = BeautifulSoup(product_page.text, 'html.parser')
     spec_rows = bs.find_all('tr',{'class':'specs__row'})
     features = {}
